@@ -1,0 +1,78 @@
+############################
+# Node / JS / TS
+############################
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+dist/
+build/
+out/
+coverage/
+
+############################
+# Environment variables
+############################
+.env
+.env.*
+!.env.example
+
+############################
+# Google credentials
+############################
+*.json
+!package.json
+!tsconfig.json
+!vite.config.ts
+
+############################
+# Vite
+############################
+.vite/
+
+############################
+# Logs
+############################
+logs/
+*.log
+
+############################
+# OS files
+############################
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+############################
+# IDE / Editor
+############################
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+############################
+# TypeScript
+############################
+*.tsbuildinfo
+
+############################
+# Cache
+############################
+.cache/
+.tmp/
+
+############################
+# Certificates
+############################
+*.pem
+*.crt
+*.key
