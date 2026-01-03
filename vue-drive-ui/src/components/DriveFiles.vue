@@ -2,15 +2,23 @@
   <div>
     <h1>Google Drive Files</h1>
 
-    <div v-if="loading">Loading...</div>
-    <div v-if="error" style="color:red">{{ error }}</div>
+    <label>
+      Modified After:
+      <input type="date" v-model="modifiedAfter" />
+    </label>
+
+    <label>
+      Modified Before:
+      <input type="date" v-model="modifiedBefore" />
+    </label>
+
+    <button @click="fetchFiles">Apply Filter</button>
 
     <table v-if="files.length">
       <thead>
         <tr>
           <th>Name</th>
           <th>Owner</th>
-          <th>Created</th>
           <th>Modified</th>
           <th>Link</th>
         </tr>
@@ -18,17 +26,21 @@
       <tbody>
         <tr v-for="file in files" :key="file.id">
           <td>{{ file.name }}</td>
-          <td>{{ file.owners?.map(o => o.emailAddress).join(', ') }}</td>
-          <td>{{ formatDate(file.createdTime) }}</td>
+          <td>{{ file.owners?.map((o: { emailAddress: any; }) => o.emailAddress).join(', ') }}</td>
           <td>{{ formatDate(file.modifiedTime) }}</td>
           <td>
             <a :href="file.webViewLink" target="_blank">Open</a>
+          </td>
+          <td>
+            <button @click="viewFile(file.id)">View</button>
+            <button @click="renameFile(file.id)">Rename</button>
+            <button @click="deleteFile(file.id)">Delete</button>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <div v-else-if="!loading">No files found.</div>
+    <div v-else>No files found</div>
   </div>
 </template>
 
@@ -36,40 +48,54 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
-interface DriveFile {
-  id: string;
-  name: string;
-  owners: { displayName: string; emailAddress: string }[];
-  createdTime: string;
-  modifiedTime: string;
-  webViewLink?: string;
-}
-
-const files = ref<DriveFile[]>([]);
-const loading = ref(false);
-const error = ref('');
+const files = ref<any[]>([]);
+const modifiedAfter = ref('');
+const modifiedBefore = ref('');
 
 function formatDate(date: string) {
   return new Date(date).toLocaleString();
 }
 
-async function fetchFiles() {
-  loading.value = true;
-  error.value = '';
-
-  try {
-    const res = await axios.get<DriveFile[]>('http://localhost:3000/files');
-    console.log({res})
-    files.value = res.data;
-  } catch (err: any) {
-    console.error(err);
-    error.value = 'Failed to fetch files';
-  } finally {
-    loading.value = false;
-  }
+function toRFC3339(date: string) {
+  return new Date(date).toISOString();
 }
 
-onMounted(() => {
-  fetchFiles();
-});
+async function fetchFiles() {
+  const params: any = {};
+
+  if (modifiedAfter.value) {
+    params.modifiedAfter = toRFC3339(modifiedAfter.value);
+  }
+
+  if (modifiedBefore.value) {
+    params.modifiedBefore = toRFC3339(modifiedBefore.value);
+  }
+
+  const res = await axios.get('http://localhost:3000/files', { params });
+  files.value = res.data;
+}
+
+function viewFile(id: string) {
+  window.open(`https://drive.google.com/file/d/${id}/view`, '_blank');
+}
+
+async function renameFile(id: string) {
+  const newName = prompt('Enter new file name');
+  if (!newName) return;
+
+  await axios.patch(`http://localhost:3000/files/${id}`, {
+    name: newName,
+  });
+
+  fetchFiles(); // refresh list
+}
+
+async function deleteFile(id: string) {
+  if (!confirm('Are you sure you want to delete this file?')) return;
+
+  await axios.delete(`http://localhost:3000/files/${id}`);
+  files.value = files.value.filter(f => f.id !== id);
+}
+
+onMounted(fetchFiles);
 </script>
