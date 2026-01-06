@@ -41,11 +41,14 @@
     </table>
 
     <div v-else>No files found</div>
+
+    <AskAI :files="files" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import AskAI from './AskAi.vue';
 import axios from 'axios';
 
 const files = ref<any[]>([]);

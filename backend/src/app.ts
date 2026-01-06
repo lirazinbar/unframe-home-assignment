@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import cors from 'cors';
 import { drive } from './google/driveClient';
+import { askAi } from './openAi/aiAsk';
 
 export async function fetchFilesByModifiedDate(modifiedAfter?: string,
   modifiedBefore?: string) {
@@ -86,5 +87,12 @@ app.patch('/files/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to update file' });
   }
 });
+
+app.post('/ai/ask', async (req, res) => {
+  const { question } = req.body;
+
+  res.json(await askAi(question));
+});
+
 
 export default app;
