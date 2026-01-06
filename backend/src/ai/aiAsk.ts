@@ -24,6 +24,5 @@ export async function askAi(question: string) {
             temperature: 0.2,
         }
     });
-    console.log(response.text);
     return response.text;
 }

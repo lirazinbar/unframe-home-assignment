@@ -21,6 +21,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import axios from 'axios';
+import { apis } from '../config/globals';
 
 const question = ref('');
 const answer = ref('');
@@ -32,11 +33,9 @@ async function ask() {
   loading.value = true;
   answer.value = '';
 
-  const res = await axios.post('http://localhost:3000/ai/ask', {
+  const res = await axios.post(apis.aiAskApi, {
     question: question.value,
   });
-
-  console.log({res});
 
   answer.value = res.data;
   loading.value = false;

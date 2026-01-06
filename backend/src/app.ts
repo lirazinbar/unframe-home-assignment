@@ -1,7 +1,9 @@
 import express, { Request, Response } from "express";
 import cors from 'cors';
-import { drive } from './google/driveClient';
-import { askAi } from './openAi/aiAsk';
+import { drive } from './files/driveClient';
+import { askAi } from './ai/aiAsk';
+import filesRouter from "./files/router";
+import aiRouter from "./ai/router";
 
 export async function fetchFilesByModifiedDate(modifiedAfter?: string,
   modifiedBefore?: string) {
@@ -28,71 +30,9 @@ export async function fetchFilesByModifiedDate(modifiedAfter?: string,
 
 const app = express();
 app.use(cors());
-
-// Middleware
 app.use(express.json());
 
-// fetch all files
-app.get("/files", async (req: Request, res: Response) => {
-  const { modifiedAfter, modifiedBefore } = req.query as {
-    modifiedAfter?: string;
-    modifiedBefore?: string;
-  };
-
-  const files = await fetchFilesByModifiedDate(
-    modifiedAfter,
-    modifiedBefore
-  );
-
-  res.json(files);
-});
-
-// Get file by ID
-app.get('/files/:id', async (req, res) => {
-  try {
-    const file = await drive.files.get({
-      fileId: req.params.id,
-      fields: 'id,name,owners,createdTime,modifiedTime,webViewLink',
-    });
-
-    res.json(file.data);
-  } catch (err) {
-    res.status(404).json({ error: 'File not found' });
-  }
-});
-
-// Delete file by ID
-app.delete('/files/:id', async (req, res) => {
-  try {
-    await drive.files.delete({ fileId: req.params.id });
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to delete file', err });
-  }
-});
-
-// Edit file metadata
-app.patch('/files/:id', async (req, res) => {
-  try {
-    const { name } = req.body;
-
-    const updated = await drive.files.update({
-      fileId: req.params.id,
-      requestBody: { name },
-      fields: 'id,name,modifiedTime',
-    });
-
-    res.json(updated.data);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update file' });
-  }
-});
-
-app.post('/ai/ask', async (req, res) => {
-  const { question } = req.body;
-
-  res.json(await askAi(question));
-});
-
+app.use('/files', filesRouter);
+app.use('/ai', aiRouter);
 
 export default app;
