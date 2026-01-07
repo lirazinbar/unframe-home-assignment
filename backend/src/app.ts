@@ -1,9 +1,9 @@
-import express, { Request, Response } from "express";
+import express from "express";
 import cors from 'cors';
 import { drive } from './files/driveClient';
-import { askAi } from './ai/aiAsk';
 import filesRouter from "./files/router";
 import aiRouter from "./ai/router";
+import { authMiddleware } from "./auth/middleware";
 
 export async function fetchFilesByModifiedDate(modifiedAfter?: string,
   modifiedBefore?: string) {
@@ -32,7 +32,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use('/files', filesRouter);
-app.use('/ai', aiRouter);
+app.use('/files', authMiddleware, filesRouter);
+app.use('/ai', authMiddleware, aiRouter);
 
 export default app;
